@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -16,6 +15,7 @@ type Config struct {
 }
 
 func NewConfiguration() (*Config, error) {
+
 	var config *Config = new(Config)
 
 	config.Port = flag.Int("port", 8888, "Port number to run the server on")
@@ -43,7 +43,6 @@ func NewConfiguration() (*Config, error) {
 		os.Exit(0)
 	}
 
-	// To make sure flags are not used twice
 	FlagUsageCount := make(map[string]int)
 	for _, flags := range os.Args[1:] {
 		if strings.HasPrefix(flags, "-") {
@@ -60,62 +59,54 @@ func NewConfiguration() (*Config, error) {
 		os.Exit(1)
 	}
 
-	if err := config.ValidateConfig(); err != nil {
+	if err := config.validateConfig(); err != nil {
 		return nil, err
 	}
 
 	return config, nil
 }
 
-func (config *Config) ValidateConfig() error {
+func (config *Config) validateConfig() error {
 	// Port validation
 	if *config.Port < 1024 || *config.Port > 49151 {
-		return fmt.Errorf("invalid port number: %d. Must be between 1024 and 49151", *config.Port)
-	}
-
-	// Dir validation
-	validName := regexp.MustCompile(`^[a-z0-9_-]+$`)
-
-	if !validName.MatchString(*config.Dir) {
-		return errors.New("invalid directory name: use only lowercase letters, digits, hyphens, and underscores")
+		return fmt.Errorf("invalid port number: %d. Must be between 1 and 65535", *config.Port)
 	}
 
 	// Use default directory if not specified
-	if strings.TrimSpace(*config.Dir) == "" {
+	if *config.Dir == "" {
 		*config.Dir = "data"
 	}
 
-	// Get absolute paths
-	absDir, err := filepath.Abs(*config.Dir)
+	cmdPath, _ := filepath.Abs("cmd")
+	internalPath, _ := filepath.Abs("internal")
+	modelsPath, _ := filepath.Abs("models")
+	if strings.HasPrefix(*config.Dir, cmdPath) || strings.HasPrefix(*config.Dir, internalPath) || strings.HasPrefix(*config.Dir, modelsPath) {
+		return errors.New("path to storage directory is inside a program file")
+	}
+
+	absPath, err := filepath.Abs(*config.Dir)
 	if err != nil {
-		return fmt.Errorf("invalid storage directory path: %w", err)
+		return fmt.Errorf("could not parse path for data directory")
 	}
 
-	// Gets absolute path for the cmd directory
-	projectRoot, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("could not determine project root: %w", err)
-	}
-
-	// Restricted directories
-	restrictedDirs := []string{"cmd", "internal", "models"}
-	for _, dir := range restrictedDirs {
-		if strings.Contains(absDir, filepath.Join(projectRoot, dir)) {
-			return fmt.Errorf("storage directory cannot be inside %s/", dir)
-		}
-	}
-
-	// Prevent directory traversal attempts
 	if strings.Contains(*config.Dir, "..") {
-		return errors.New("directory traversal using '..' is not allowed")
+		return fmt.Errorf("breaking code traversal")
 	}
 
-	// Ensure the storage directory is inside the project but not the root itself
-	if !strings.HasPrefix(absDir, projectRoot) {
-		return errors.New("storage directory must be inside the project directory")
+	if filepath.IsAbs(*config.Dir) && strings.Contains(*config.Dir, "..") {
+		return fmt.Errorf("relative paths or directory traversal is not allowed")
 	}
-	if absDir == projectRoot {
-		return errors.New("storage directory cannot be the project root")
+
+	projectRootDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("could not start server on %s", projectRootDir)
+	}
+	if !strings.HasPrefix(absPath, projectRootDir) {
+		return fmt.Errorf("path is outside of the project directory")
+	}
+
+	if absPath == projectRootDir {
+		return fmt.Errorf("cannot create file directly inside the project root directory")
 	}
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"SimpleCoffee/configs"
 	"SimpleCoffee/internal/dal"
 	"SimpleCoffee/internal/handler"
+	"SimpleCoffee/internal/representation/myjson"
 	"SimpleCoffee/internal/service"
 	"SimpleCoffee/pkg/logger"
 	"fmt"
@@ -21,9 +22,10 @@ func main() {
 		return
 	}
 
-	myRepo := dal.NewRepository()
+	myRepo := dal.NewRepository(*conf.Dir)
 	myService := service.NewMyService(myRepo)
-	myHandler := handler.NewMyHandler(myService)
+	myRepresentation := myjson.NewRepresentation()
+	myHandler := handler.NewMyHandler(myService, myRepresentation)
 	router := myHandler.InitRouter()
 	logger.MyLogger.Info("Starting server at the port: ", *conf.Port)
 	fmt.Println("The server is running at: http://localhost:", *conf.Port)
