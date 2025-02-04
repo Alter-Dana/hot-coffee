@@ -1,9 +1,12 @@
 package myjson
 
 import (
+	"SimpleCoffee/internal/domain"
 	"SimpleCoffee/internal/domain/entity"
 	"SimpleCoffee/pkg/logger"
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 )
 
@@ -12,8 +15,14 @@ func (representation *JSONRepresentation) ConvertToInventoryObject(r *http.Reque
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&obj); err != nil {
-		logger.MyLogger.Error("Failed to decode the incoming request's body", "Layer", "Representation", "Function", "ConvertToInventoryObject", "error", err.Error())
-		return nil, err
+
+		if errors.Is(err, io.EOF) || errors.Is(err, &json.SyntaxError{}) || errors.Is(err, &json.UnmarshalTypeError{}) || err.Error() == "unknown field" {
+			logger.MyLogger.Info("The incoming request's body is invalid", "Layer", "Representation", "Function", "ConvertToInventoryObject", "error", err.Error())
+			return nil, err
+		} else {
+			logger.MyLogger.Error("Failed to decode the incoming request's body", "Layer", "Representation", "Function", "ConvertToInventoryObject", "error", err.Error())
+			return nil, domain.ErrInternalServer
+		}
 	}
 
 	return obj, nil
@@ -24,8 +33,14 @@ func (representation *JSONRepresentation) ConvertToMenuObject(r *http.Request) (
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&obj); err != nil {
-		logger.MyLogger.Error("Failed to decode the incoming request's body", "Layer", "Representation", "Function", "ConvertToInventoryObject", "error", err.Error())
-		return nil, err
+
+		if errors.Is(err, io.EOF) || errors.Is(err, &json.SyntaxError{}) || errors.Is(err, &json.UnmarshalTypeError{}) || err.Error() == "unknown field" {
+			logger.MyLogger.Info("The incoming request's body is invalid", "Layer", "Representation", "Function", "ConvertToMenuObject", "error", err.Error())
+			return nil, err
+		} else {
+			logger.MyLogger.Error("Failed to decode the incoming request's body", "Layer", "Representation", "Function", "ConvertToMenuObject", "error", err.Error())
+			return nil, domain.ErrInternalServer
+		}
 	}
 
 	return obj, nil
@@ -36,8 +51,14 @@ func (representation *JSONRepresentation) ConvertToOrderObject(r *http.Request) 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&obj); err != nil {
-		logger.MyLogger.Error("Failed to decode the incoming request's body", "Layer", "Representation", "Function", "ConvertToInventoryObject", "error", err.Error())
-		return nil, err
+
+		if errors.Is(err, io.EOF) || errors.Is(err, &json.SyntaxError{}) || errors.Is(err, &json.UnmarshalTypeError{}) || err.Error() == "unknown field" {
+			logger.MyLogger.Info("The incoming request's body is invalid", "Layer", "Representation", "Function", "ConvertToOrderObject", "error", err.Error())
+			return nil, err
+		} else {
+			logger.MyLogger.Error("Failed to decode the incoming request's body", "Layer", "Representation", "Function", "ConvertToOrderObject", "error", err.Error())
+			return nil, domain.ErrInternalServer
+		}
 	}
 
 	return obj, nil

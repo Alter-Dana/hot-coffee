@@ -37,3 +37,8 @@ func (app *MyService) CreateInventory(inventoryItem *entity.InventoryItem) error
 	return nil
 
 }
+
+func (app *MyService) GetInventory() ([]entity.InventoryItem, error) {
+	logger.MyLogger.Debug("Activation of function", "Layer", "Service", "Function", "GetInventory")
+
+}

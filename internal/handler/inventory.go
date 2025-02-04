@@ -19,6 +19,16 @@ func (myhandler *MyHandler) inventory(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
+		// kamila
+		/*
+
+			check for body
+			get array of inventory items from json files
+			inventory item struct is wrapped in representation here
+			call convert
+
+		*/
+
 	case "POST":
 		if contentType != "application/myjson" {
 			logger.MyLogger.Info("incoming request's Content-type is invalid", "endpoint", "/inventory", "requestContentType", contentType)
@@ -27,18 +37,21 @@ func (myhandler *MyHandler) inventory(w http.ResponseWriter, r *http.Request) {
 		}
 
 		requestedInventory, err := myhandler.Representation.ConvertToInventoryObject(r)
-		if err != nil {
-			logger.MyLogger.Info("incoming request's body is invalid", "error", err)
-			myhandler.errorHandling(w, "Incoming request's body is invalid\n Error: "+err.Error(), http.StatusBadRequest)
+		if errors.Is(err, domain.ErrInternalServer) {
+			myhandler.errorHandling(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else if err != nil {
+			myhandler.errorHandling(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		err = myhandler.Service.CreateInventory(requestedInventory)
-		if errors.Is(err, domain.ErrExistID) || errors.Is(err, domain.ErrInvalidInventory) {
+		if errors.Is(err, domain.ErrInternalServer) {
+			myhandler.errorHandling(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else if errors.Is(err, domain.ErrExistID) || errors.Is(err, domain.ErrInvalidInventory) {
 			myhandler.errorHandling(w, err.Error(), http.StatusBadRequest)
 			return
-		} else if err != nil {
-			myhandler.errorHandling(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 
 	default:

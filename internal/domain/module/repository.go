@@ -14,7 +14,8 @@ type orderRepo interface {
 type inventoryRepo interface {
 	GetCertainInventory(inventoryID string) *entity.InventoryItem
 	CreateInventory(inventory *entity.InventoryItem) error
-	UpdataInventory(inventory *entity.InventoryItem) error
+	UpdateInventory(inventory *entity.InventoryItem) error
+	GetAllInventory() ([]entity.InventoryItem, error)
 }
 type menuRepo interface {
 }

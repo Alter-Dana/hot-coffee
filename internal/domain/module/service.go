@@ -8,4 +8,5 @@ type Service interface {
 
 type inventory interface {
 	CreateInventory(inventoryItem *entity.InventoryItem) error
+	GetInventory() ([]entity.InventoryItem, error)
 }

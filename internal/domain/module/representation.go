@@ -14,6 +14,7 @@ type orderRepresentation interface {
 }
 type inventoryRepresentation interface {
 	ConvertToInventoryObject(r *http.Request) (*entity.InventoryItem, error)
+	ConvertInventoryToResponse(w http.ResponseWriter, inventories []entity.InventoryItem) error
 }
 
 type menuRepresentation interface{}
