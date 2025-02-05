@@ -64,7 +64,7 @@ func (myhandler *MyHandler) inventory(w http.ResponseWriter, r *http.Request) {
 
 func (myhandler *MyHandler) specificInventory(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/inventory/" {
-		myhandler.errorHandling()
+		//myhandler.errorHandling()
 		return
 	}
 

@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"SimpleCoffee/configs"
@@ -27,8 +27,8 @@ func main() {
 	myRepresentation := myjson.NewRepresentation()
 	myHandler := handler.NewMyHandler(myService, myRepresentation)
 	router := myHandler.InitRouter()
-	logger.MyLogger.Info("Starting server at the port: ", *conf.Port)
-	fmt.Println("The server is running at: http://localhost:", *conf.Port)
+	logger.MyLogger.Info(fmt.Sprintf("Starting server at the port: %v", *conf.Port))
+	fmt.Println(fmt.Sprintf("The server is running at: http://localhost:%v", *conf.Port))
 	log.Fatalln(http.ListenAndServe(fmt.Sprintf(":%d", *conf.Port), router))
 
 }

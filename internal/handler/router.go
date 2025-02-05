@@ -8,7 +8,7 @@ func (myHandler *MyHandler) InitRouter() http.Handler {
 		return LoggingMiddleware(PanicMiddleware(http.HandlerFunc(next)))
 	}
 	mux := http.NewServeMux()
-	mux.Handle("/", Middleware(myhandler.home))
+	mux.Handle("/", Middleware(myHandler.home))
 	mux.Handle("/orders", Middleware(myHandler.order))
 	mux.Handle("/menu", Middleware(myHandler.menu))
 	mux.Handle("/inventory", Middleware(myHandler.inventory))

@@ -44,13 +44,51 @@ func (rp *Repository) GetCertainInventory(inventoryID string) *entity.InventoryI
 	return inventory
 }
 
-func (rp *Repository) GetAllInventory() ([]*entity.InventoryItem, error) {
+func (rp *Repository) GetAllInventory() ([]entity.InventoryItem, error) {
 	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "Function", "GetAllInventory")
-	// read inventory json file  and unmarshall json into inventory struct, handle errors and log them
-	// return
-	//
+
+	var inventories []entity.InventoryItem
+
+	dir, err := openDirectory(rp.Directory)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+	
+	inventories, err = retrieveInventoriesFromJson(rp.Directory + rp.FileInventory)
+	if err != nil {
+		return nil, err
+	}
+	logger.MyLogger.Debug("End of function", "Layer", "Repository", "Function", "GetAllInventory")
+	return inventories, nil
 }
 
+func (rp *Repository) UpdateInventory(newInventory *entity.InventoryItem) error {
+	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "Function", "UpdateInventory")
+	dbInventories, err := rp.GetAllInventory()
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(dbInventories); i++ {
+		if newInventory.IngredientID == dbInventories[i].IngredientID {
+			dbInventories[i].Name = newInventory.Name
+			dbInventories[i].Quantity = newInventory.Quantity
+			dbInventories[i].Unit = newInventory.Unit
+			mapInventory[newInventory.IngredientID] = &dbInventories[i]
+			break
+		}
+	}
+
+	err = writeInventoryJsonDataToFile(rp.Directory+rp.FileInventory, dbInventories)
+	if err != nil {
+		return err
+	}
+
+	logger.MyLogger.Debug("End of function", "Layer", "Repository", "Function", "UpdateInventory")
+	return nil
+}
+
+// -----------------------------------------------
 func openDirectory(path string) (*os.File, error) {
 	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "Function", "openDirectory")
 
@@ -92,56 +130,91 @@ func openDirectory(path string) (*os.File, error) {
 	return dir, nil
 }
 
-func appendToJSONInventoryFile(directory, fileName string, newInventory *entity.InventoryItem) error {
-	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "Function", "appendToJSONInventoryFile")
-
-	filePath := filepath.Join(directory, fileName)
+func retrieveRawDataFromJson(filePath string) ([]byte, error) {
 
 	// Check if the JSON file exists
 	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
-			logger.MyLogger.Error(fmt.Sprintf("Failed to open JSON file '%s' does not exist", filePath), "Layer", "Repository", "Function", "appendToJSONInventoryFile", "error", err.Error())
-			return domain.ErrInternalServer
+			logger.MyLogger.Error(fmt.Sprintf("Failed to open JSON file '%s' does not exist", filePath), "Layer", "Repository", "Function", "retrieveRawDataFromJson", "error", err.Error())
+			return nil, domain.ErrInternalServer
 		}
-		logger.MyLogger.Error("Failed to check JSON file", "Layer", "Repository", "Function", "appendToJSONInventoryFile", "error", err.Error())
-		return domain.ErrInternalServer
+		logger.MyLogger.Error("Failed to check JSON file", "Layer", "Repository", "Function", "retrieveRawDataFromJson", "error", err.Error())
+		return nil, domain.ErrInternalServer
 	}
 
 	// Read the existing JSON file
 	fileData, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		logger.MyLogger.Error("Failed to read JSON file", "Layer", "Repository", "Function", "appendToJSONInventoryFile", "error", err.Error())
-		return domain.ErrInternalServer
+		logger.MyLogger.Error("Failed to read JSON file", "Layer", "Repository", "Function", "retrieveRawDataFromJson", "error", err.Error())
+		return nil, domain.ErrInternalServer
 	}
 
-	// Initialize a slice to hold Person objects
-	var inventoryItems []entity.InventoryItem
+	return fileData, nil
+}
 
-	// Unmarshal only if the file is not empty
+func retrieveInventoriesFromJson(filePath string) ([]entity.InventoryItem, error) {
+	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "retrieveInventoriesFromJson")
+
+	inventories := []entity.InventoryItem{}
+
+	fileData, err := retrieveRawDataFromJson(filePath)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(fileData) > 0 {
-		if err := json.Unmarshal(fileData, &inventoryItems); err != nil {
-			logger.MyLogger.Error("Failed to unmarshall JSON", "Layer", "Repository", "Function", "appendToJSONInventoryFile", "error", err.Error())
-			return domain.ErrInternalServer
+		if err := json.Unmarshal(fileData, &inventories); err != nil {
+			logger.MyLogger.Error("Failed to unmarshall JSON", "Layer", "Repository", "Function", "retrieveInventoriesFromJson", "error", err.Error())
+			return nil, domain.ErrInternalServer
 		}
 	}
 
+	logger.MyLogger.Debug("End of function", "Layer", "Repository", "retrieveInventoriesFromJson")
+
+	return inventories, nil
+}
+
+func appendToJSONInventoryFile(directory, fileName string, newInventory *entity.InventoryItem) error {
+	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "Function", "appendToJSONInventoryFile")
+
+	filePath := filepath.Join(directory, fileName)
+
+	// Initialize a slice to hold Person objects
+	inventories, err := retrieveInventoriesFromJson(filePath)
+	if err != nil {
+		return err
+	}
+
 	// Append new data
-	inventoryItems = append(inventoryItems, *newInventory)
+	inventories = append(inventories, *newInventory)
 
 	// Marshal updated JSON
-	updatedJSON, err := json.MarshalIndent(inventoryItems, "", "  ")
+	err = writeInventoryJsonDataToFile(filePath, inventories)
 	if err != nil {
-		logger.MyLogger.Error("Failed to marshall JSON", "Layer", "Repository", "Function", "appendToJSONInventoryFile", "error", err.Error())
+		return err
+	}
+
+	logger.MyLogger.Info("\tfmt.Sprintf(\"Successfully appended new data to '%s'\\n\", filePath)\n")
+	logger.MyLogger.Debug("End of function", "Layer", "Repository", "Function", "appendToJSONInventoryFile")
+	return nil
+}
+
+func writeInventoryJsonDataToFile(filePath string, inventories []entity.InventoryItem) error {
+
+	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "writeInventoryJsonDataToFile")
+
+	updatedJSON, err := json.MarshalIndent(inventories, "", "  ")
+	if err != nil {
+		logger.MyLogger.Error("Failed to marshall JSON", "Layer", "Repository", "Function", "writeInventoryJsonDataToFile", "error", err.Error())
 		return domain.ErrInternalServer
 	}
 
 	// Write back the updated JSON
 	if err := ioutil.WriteFile(filePath, updatedJSON, 0644); err != nil {
-		logger.MyLogger.Error("Failed to write JSON file", "Layer", "Repository", "Function", "appendToJSONInventoryFile", "error", err.Error())
+		logger.MyLogger.Error("Failed to write JSON file", "Layer", "Repository", "Function", "writeInventoryJsonDataToFile", "error", err.Error())
 		return domain.ErrInternalServer
 	}
 
-	logger.MyLogger.Info("\tfmt.Sprintf(\"Successfully appended new data to '%s'\\n\", filePath)\n")
-	logger.MyLogger.Debug("End of function", "Layer", "Repository", "Function", "appendToJSONInventoryFile")
+	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "writeInventoryJsonDataToFile")
 	return nil
 }
