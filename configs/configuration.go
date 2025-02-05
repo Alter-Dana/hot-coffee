@@ -19,7 +19,7 @@ func NewConfiguration() (*Config, error) {
 	var config *Config = new(Config)
 
 	config.Port = flag.Int("port", 8888, "Port number to run the server on")
-	config.Dir = flag.String("dir", "data", "Path to the storage directory")
+	config.Dir = flag.String("dir", "../data", "Path to the storage directory")
 	help := flag.Bool("help", false, "Show usage information")
 
 	flag.Usage = func() {
@@ -98,7 +98,7 @@ func (config *Config) ValidateConfig() error {
 	}
 
 	// Restricted directories
-	restrictedDirs := []string{"cmd", "internal", "models"}
+	restrictedDirs := []string{"cmd", "internal", "models", "logging"}
 	for _, dir := range restrictedDirs {
 		if strings.Contains(absDir, filepath.Join(projectRoot, dir)) {
 			return fmt.Errorf("storage directory cannot be inside %s/", dir)
@@ -106,7 +106,7 @@ func (config *Config) ValidateConfig() error {
 	}
 
 	// Prevent directory traversal attempts
-	if strings.Contains(*config.Dir, "..") {
+	if !(len(*config.Dir) > 3 && (*config.Dir)[0] == '.' && (*config.Dir)[1] == '.' && (*config.Dir)[2] == '/') {
 		return errors.New("directory traversal using '..' is not allowed")
 	}
 
@@ -120,3 +120,67 @@ func (config *Config) ValidateConfig() error {
 
 	return nil
 }
+
+// var (
+// 	defaultPort int    = 8080
+// 	defaultDir  string = "../data"
+// )
+
+// type Configuration struct {
+// 	Addr *int `json:"addr"`
+// }
+
+// func NewConfiguration() (*Configuration, error) {
+// 	var conf *Configuration = new(Configuration)
+
+// 	if validation, err := manipulationWithArguments(os.Args, conf); !validation {
+// 		return nil, err
+// 	}
+
+// 	return conf, nil
+// }
+
+// func manipulationWithArguments(args []string, conf *Configuration) (bool, error) {
+// 	if len(args) > 3 {
+// 		fmt.Println("Too many arguments. Try using '--help' to view the list of available commands.")
+// 		return false, nil
+// 	}
+
+// 	if len(args) == 1 {
+// 		conf.Addr = &defaultPort
+// 	}
+
+// 	if len(args) == 2 {
+// 		switch args[1] {
+// 		case "--help":
+// 			fmt.Println(`
+// Usage:
+// own-redis [--port <N>]
+// own-redis --help
+// 			`)
+// 		default:
+// 			fmt.Println("Command not recognized. Try using '--help' to view the list of available commands.")
+// 		}
+// 		return false, nil
+// 	}
+
+// 	if len(args) == 3 {
+// 		switch args[1] {
+// 		case "--port":
+// 			portNumber, err := strconv.Atoi(args[2])
+// 			if err != nil {
+// 				return false, err
+// 			}
+// 			if !(portNumber >= 1024 && portNumber <= 49151) {
+// 				fmt.Println("The entered port is not available")
+// 				return false, nil
+// 			}
+// 			conf.Addr = &portNumber
+// 		default:
+// 			fmt.Println("Command not recognized. Try using '--help' to view the list of available commands.")
+// 			return false, nil
+// 		}
+// 	}
+
+// 	return true, nil
+// }

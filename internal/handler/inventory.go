@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"SimpleCoffee/internal/domain"
-	"SimpleCoffee/pkg/logger"
 	"errors"
 	"net/http"
+
+	"SimpleCoffee/internal/domain"
+	"SimpleCoffee/pkg/logger"
 )
 
 func (myhandler *MyHandler) inventory(w http.ResponseWriter, r *http.Request) {
@@ -19,19 +20,28 @@ func (myhandler *MyHandler) inventory(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		// kamila
-		/*
+		// Check if request body is empty
+		if r.ContentLength > 0 {
+			logger.MyLogger.Info("incoming request's body is not empty", "endpoint", "/inventory", "method", "GET")
+			myhandler.errorHandling(w, "Request body must be empty", http.StatusBadRequest)
+			return
+		}
 
-			check for body
-			get array of inventory items from json files
-			inventory item struct is wrapped in representation here
-			call convert
+		// Retrieve inventory items
+		inventoryItems, err := myhandler.Service.GetInventory()
+		if err != nil {
+			myhandler.errorHandling(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		*/
+		// Convert inventory items to JSON representation
+		responseItems := myhandler.Representation.ConvertInventoryToResponse(inventoryItems)
+
+		// Send response in JSON format
 
 	case "POST":
 		if contentType != "application/myjson" {
-			logger.MyLogger.Info("incoming request's Content-type is invalid", "endpoint", "/inventory", "requestContentType", contentType)
+			logger.MyLogger.Info("incoming request's content-type is invalid", "endpoint", "/inventory", "requestContentType", contentType)
 			myhandler.errorHandling(w, "Content-Type should be application/myjson", http.StatusBadRequest)
 			return
 		}
@@ -59,12 +69,11 @@ func (myhandler *MyHandler) inventory(w http.ResponseWriter, r *http.Request) {
 		myhandler.errorHandling(w, "incoming request's method is invalid", http.StatusMethodNotAllowed)
 		return
 	}
-
 }
 
 func (myhandler *MyHandler) specificInventory(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/inventory/" {
-		//myhandler.errorHandling()
+		// myhandler.errorHandling()
 		return
 	}
 
@@ -75,7 +84,6 @@ func (myhandler *MyHandler) specificInventory(w http.ResponseWriter, r *http.Req
 	contentType := r.Header.Get("Content-Type")
 
 	if r.Method == "GET" {
-
 	} else if r.Method == "PUT" {
 		if contentType != "application/myjson" {
 			logger.MyLogger.Info("incoming request's Content-type is invalid", "endpoint", "/inventory/", "requestContentType", contentType)
@@ -83,7 +91,5 @@ func (myhandler *MyHandler) specificInventory(w http.ResponseWriter, r *http.Req
 			return
 		}
 	} else if r.Method == "DELETE" {
-
 	}
-
 }
