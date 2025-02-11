@@ -20,6 +20,7 @@ func GetLoggerObject(FilePath string) *slog.Logger {
 
 	logger := slog.New(slog.NewJSONHandler(file, &slog.HandlerOptions{
 		AddSource: true,
+		Level:     slog.LevelDebug,
 	}))
 
 	return logger

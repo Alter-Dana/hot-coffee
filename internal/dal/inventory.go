@@ -54,7 +54,7 @@ func (rp *Repository) GetAllInventory() ([]entity.InventoryItem, error) {
 		return nil, err
 	}
 	defer dir.Close()
-	
+
 	inventories, err = retrieveInventoriesFromJson(rp.Directory + rp.FileInventory)
 	if err != nil {
 		return nil, err
@@ -91,9 +91,7 @@ func (rp *Repository) UpdateInventory(newInventory *entity.InventoryItem) error 
 // -----------------------------------------------
 func openDirectory(path string) (*os.File, error) {
 	logger.MyLogger.Debug("Activation of function", "Layer", "Repository", "Function", "openDirectory")
-
 	dir, err := os.Open(path)
-
 	if err != nil {
 		if os.IsNotExist(err) {
 			logger.MyLogger.Error("Failed to open the directory, because it does not exist", "Layer", "Repository", "Function", "openDirectory", "error", err.Error())

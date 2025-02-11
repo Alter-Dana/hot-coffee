@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"SimpleCoffee/pkg/logger"
 	"errors"
 	"flag"
 	"fmt"
@@ -19,7 +20,7 @@ func NewConfiguration() (*Config, error) {
 	var config *Config = new(Config)
 
 	config.Port = flag.Int("port", 8888, "Port number to run the server on")
-	config.Dir = flag.String("dir", "data", "Path to the storage directory")
+	config.Dir = flag.String("dir", "../data", "Path to the storage directory")
 	help := flag.Bool("help", false, "Show usage information")
 
 	flag.Usage = func() {
@@ -49,6 +50,7 @@ func NewConfiguration() (*Config, error) {
 			flagName := strings.TrimLeft(flags, "-")
 			FlagUsageCount[flagName]++
 			if FlagUsageCount[flagName] > 1 {
+				logger.MyLogger.Error(fmt.Sprintf("duplicate flag detected: flag %s used multiple times", flagName))
 				return nil, fmt.Errorf("duplicate flag detected: flag %s used multiple times", flagName)
 			}
 		}
@@ -87,14 +89,6 @@ func (config *Config) validateConfig() error {
 	absPath, err := filepath.Abs(*config.Dir)
 	if err != nil {
 		return fmt.Errorf("could not parse path for data directory")
-	}
-
-	if strings.Contains(*config.Dir, "..") {
-		return fmt.Errorf("breaking code traversal")
-	}
-
-	if filepath.IsAbs(*config.Dir) && strings.Contains(*config.Dir, "..") {
-		return fmt.Errorf("relative paths or directory traversal is not allowed")
 	}
 
 	projectRootDir, err := os.Getwd()
