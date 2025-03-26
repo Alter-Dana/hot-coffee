@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"SimpleCoffee/pkg/logger"
+	"hot-coffee/pkg/logger"
 	"net/http"
 )
 

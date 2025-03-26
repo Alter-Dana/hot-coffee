@@ -1,7 +1,7 @@
 package module
 
 import (
-	"SimpleCoffee/internal/domain/entity"
+	"hot-coffee/internal/domain/entity"
 	"net/http"
 )
 

@@ -1,6 +1,6 @@
 package service
 
-import "SimpleCoffee/internal/domain/module"
+import "hot-coffee/internal/domain/module"
 
 type MyService struct {
 	MyDB module.Repository

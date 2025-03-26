@@ -1,9 +1,9 @@
 package service
 
 import (
-	"SimpleCoffee/internal/domain"
-	"SimpleCoffee/internal/domain/entity"
-	"SimpleCoffee/pkg/logger"
+	"hot-coffee/internal/domain"
+	"hot-coffee/internal/domain/entity"
+	"hot-coffee/pkg/logger"
 )
 
 func (app *MyService) CreateInventory(inventoryItem *entity.InventoryItem) error {

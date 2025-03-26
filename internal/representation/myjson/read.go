@@ -1,9 +1,9 @@
 package myjson
 
 import (
-	"SimpleCoffee/internal/domain"
-	"SimpleCoffee/internal/domain/entity"
-	"SimpleCoffee/pkg/logger"
+	"hot-coffee/internal/domain"
+	"hot-coffee/internal/domain/entity"
+	"hot-coffee/pkg/logger"
 	"encoding/json"
 	"errors"
 	"io"

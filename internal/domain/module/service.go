@@ -1,6 +1,6 @@
 package module
 
-import "SimpleCoffee/internal/domain/entity"
+import "hot-coffee/internal/domain/entity"
 
 type Service interface {
 	inventory

@@ -1,6 +1,6 @@
 package handler
 
-import "SimpleCoffee/internal/domain/module"
+import "hot-coffee/internal/domain/module"
 
 type MyHandler struct {
 	Service        module.Service

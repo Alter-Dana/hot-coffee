@@ -1,7 +1,7 @@
 package configs
 
 import (
-	"SimpleCoffee/pkg/logger"
+	"hot-coffee/pkg/logger"
 	"errors"
 	"flag"
 	"fmt"

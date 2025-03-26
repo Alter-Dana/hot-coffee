@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"SimpleCoffee/internal/domain"
-	"SimpleCoffee/pkg/logger"
+	"hot-coffee/internal/domain"
+	"hot-coffee/pkg/logger"
 	"errors"
 	"net/http"
 )

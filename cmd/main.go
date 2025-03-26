@@ -1,12 +1,12 @@
 package main
 
 import (
-	"SimpleCoffee/configs"
-	"SimpleCoffee/internal/dal"
-	"SimpleCoffee/internal/handler"
-	"SimpleCoffee/internal/representation/myjson"
-	"SimpleCoffee/internal/service"
-	"SimpleCoffee/pkg/logger"
+	"hot-coffee/configs"
+	"hot-coffee/internal/dal"
+	"hot-coffee/internal/handler"
+	"hot-coffee/internal/representation/myjson"
+	"hot-coffee/internal/service"
+	"hot-coffee/pkg/logger"
 	"fmt"
 	"log"
 	"net/http"
